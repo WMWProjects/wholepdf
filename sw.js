@@ -1,5 +1,5 @@
 /* WholePDF — offline support. Caches the app's own files only. Never sees or stores your documents. */
-const VERSION = "2.1.0";
+const VERSION = "2.1.1";
 const CACHE = "wholepdf-" + VERSION;
 const ASSETS = ["./", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
 self.addEventListener("install", (e) => {
@@ -11,6 +11,9 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
+  // Other Wholeminds apps live in subfolders of this site (e.g. killorcommit/). Leave them to their own offline worker.
+  const rest = new URL(req.url).pathname.slice(new URL(self.registration.scope).pathname.length);
+  if (rest.includes("/")) return;
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const key = req.mode === "navigate" ? "./" : req;
